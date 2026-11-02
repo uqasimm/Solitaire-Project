@@ -274,7 +274,7 @@ function App() {
 
                 <button
                   className="pile-button"
-                  onClick={() => moveToFoundation(selected?.source)}
+                  onClick={() => moveToFoundation(selected?.source, selected?.column ?? -1)}
                   type="button"
                 >
                   {card ? (
