@@ -60,3 +60,43 @@ class LinkedList:
         while current is not None:
             print(current.data)
             current = current.next
+
+    def get_items(self):
+        items = []
+        current = self.head
+
+        while current is not None:
+            items.append(current.data)
+            current = current.next
+
+        return items
+
+    def remove_from(self, index):
+        if index < 0 or index >= self.length:
+            return []
+
+        current = self.head
+        removed_cards = []
+
+        for i in range(index):
+            current = current.next
+
+        while current is not None:
+            removed_cards.append(current.data)
+            current = current.next
+
+        if index == 0:
+            self.head = None
+            self.tail = None
+        else:
+            current = self.head
+
+            for i in range(index - 1):
+                current = current.next
+
+            current.next = None
+            self.tail = current
+
+        self.length = index
+
+        return removed_cards
