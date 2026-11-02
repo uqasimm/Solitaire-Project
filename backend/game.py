@@ -1,6 +1,6 @@
 from deck import Deck
 from stack import Stack
-from queue import Queue
+from game_queue import Queue
 from linked_list import LinkedList
 
 class SolitaireGame:
