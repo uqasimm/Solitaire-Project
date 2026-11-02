@@ -124,6 +124,23 @@ function App() {
     }
   }
 
+  async function undoGame() {
+    const result = await requestGame("/undo", {
+      method: "POST",
+    });
+
+    if (result) {
+      setGame(result.game);
+      setSelected(null);
+
+      if (result.success) {
+        setMoves((previous) => Math.max(0, previous - 1));
+      }
+
+      setMessage(result.message);
+    }
+  }
+
   async function drawCard() {
     if (selected) {
       setSelected(null);
@@ -217,6 +234,11 @@ function App() {
 
         <div className="game-controls">
           <span className="move-counter">Moves: {moves}</span>
+
+          <button className="undo-button" onClick={undoGame}>
+            Undo
+          </button>
+
           <button className="new-game-button" onClick={newGame}>
             New Game
           </button>
@@ -231,11 +253,7 @@ function App() {
             <div className="pile">
               <span className="pile-label">STOCK</span>
 
-              <button
-                className="pile-button"
-                onClick={drawCard}
-                type="button"
-              >
+              <button className="pile-button" onClick={drawCard} type="button">
                 {game.stock_count > 0 ? (
                   <PlayingCard card={{ face_up: false }} />
                 ) : (
@@ -274,7 +292,9 @@ function App() {
 
                 <button
                   className="pile-button"
-                  onClick={() => moveToFoundation(selected?.source, selected?.column ?? -1)}
+                  onClick={() =>
+                    moveToFoundation(selected?.source, selected?.column ?? -1)
+                  }
                   type="button"
                 >
                   {card ? (
@@ -335,16 +355,14 @@ function App() {
         </section>
 
         {game.won && (
-          <div className="win-message">
-            Congratulations! You won the game!
-          </div>
+          <div className="win-message">Congratulations! You won the game!</div>
         )}
       </section>
 
       <footer className="instructions">
         Select a face-up card, then select a destination column. Click a
-        foundation pile to move an eligible card there. Click the stock to
-        draw a card.
+        foundation pile to move an eligible card there. Click the stock to draw
+        a card.
       </footer>
     </main>
   );

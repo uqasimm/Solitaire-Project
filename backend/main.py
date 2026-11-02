@@ -4,6 +4,9 @@ from pydantic import BaseModel
 
 from game import SolitaireGame
 
+from copy import deepcopy
+from history import GameHistory
+
 app = FastAPI(title="Solitaire Game API")
 
 app.add_middleware(
@@ -15,6 +18,7 @@ app.add_middleware(
 )
 
 game = SolitaireGame()
+history = GameHistory()
 
 class TableauMove(BaseModel):
     source: int
@@ -95,6 +99,7 @@ def new_game():
     global game
 
     game = SolitaireGame()
+    history.clear()
 
     return {
         "success": True,
@@ -104,9 +109,12 @@ def new_game():
 @app.post("/draw")
 def draw_card():
 
+    previous_state = deepcopy(game)
+
     card = game.draw_from_stock()
 
     if card is None:
+
         recycled = game.recycle_stock()
 
         if not recycled:
@@ -116,19 +124,27 @@ def draw_card():
                 "game": get_game_state()
             }
 
+    history.save_snapshot(previous_state)
+
     return {
         "success": True,
+        "message": "Card drawn",
         "game": get_game_state()
     }
 
 @app.post("/move-tableau")
 def move_tableau(data: TableauMove):
 
+    previous_state = deepcopy(game)
+
     success = game.move_tableau_to_tableau(
         data.source,
         data.card_index,
         data.destination
     )
+
+    if success:
+        history.save_snapshot(previous_state)
 
     return {
         "success": success,
@@ -139,9 +155,14 @@ def move_tableau(data: TableauMove):
 @app.post("/move-waste")
 def move_waste(data: WasteMove):
 
+    previous_state = deepcopy(game)
+
     success = game.move_waste_to_tableau(
         data.destination
     )
+
+    if success:
+        history.save_snapshot(previous_state)
 
     return {
         "success": success,
@@ -152,19 +173,49 @@ def move_waste(data: WasteMove):
 @app.post("/move-foundation")
 def move_foundation(data: FoundationMove):
 
+    previous_state = deepcopy(game)
+
     if data.source == "waste":
+
         success = game.move_waste_to_foundation()
 
     elif data.source == "tableau":
+
         success = game.move_tableau_to_foundation(
             data.column
         )
 
     else:
+
         success = False
+
+    if success:
+        history.save_snapshot(previous_state)
 
     return {
         "success": success,
         "message": "Move successful" if success else "Invalid move",
+        "game": get_game_state()
+    }
+
+@app.post("/undo")
+def undo_move():
+
+    global game
+
+    previous_state = history.undo()
+
+    if previous_state is None:
+        return {
+            "success": False,
+            "message": "Nothing to undo",
+            "game": get_game_state()
+        }
+
+    game = previous_state
+
+    return {
+        "success": True,
+        "message": "Move undone",
         "game": get_game_state()
     }
