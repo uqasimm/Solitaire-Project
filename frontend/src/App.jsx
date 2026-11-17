@@ -253,13 +253,13 @@ function App() {
             <div className="pile">
               <span className="pile-label">STOCK</span>
 
-              <button className="pile-button" onClick={drawCard} type="button">
+              <div className="pile-button" onClick={drawCard} type="button">
                 {game.stock_count > 0 ? (
                   <PlayingCard card={{ face_up: false }} />
                 ) : (
                   <div className="empty-card stock-empty">↻</div>
                 )}
-              </button>
+              </div>
 
               <span className="card-count">{game.stock_count}</span>
             </div>
@@ -267,7 +267,7 @@ function App() {
             <div className="pile">
               <span className="pile-label">WASTE</span>
 
-              <button
+              <div
                 className="pile-button"
                 onClick={() => {
                   if (game.waste) {
@@ -275,13 +275,12 @@ function App() {
                     setMessage("Waste card selected.");
                   }
                 }}
-                type="button"
               >
                 <PlayingCard
                   card={game.waste}
                   selected={selected?.source === "waste"}
                 />
-              </button>
+              </div>
             </div>
           </div>
 
@@ -290,12 +289,11 @@ function App() {
               <div className="pile" key={suit}>
                 <span className="pile-label">{suit.toUpperCase()}</span>
 
-                <button
+                <div
                   className="pile-button"
                   onClick={() =>
                     moveToFoundation(selected?.source, selected?.column ?? -1)
                   }
-                  type="button"
                 >
                   {card ? (
                     <PlayingCard card={card} />
@@ -304,7 +302,7 @@ function App() {
                       {SUITS[suit]}
                     </div>
                   )}
-                </button>
+                </div>
               </div>
             ))}
           </div>
