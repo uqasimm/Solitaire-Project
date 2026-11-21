@@ -203,7 +203,7 @@ def undo_move():
 
     global game
 
-    previous_state = history.undo()
+    previous_state = history.undo(deepcopy(game))
 
     if previous_state is None:
         return {
@@ -217,5 +217,28 @@ def undo_move():
     return {
         "success": True,
         "message": "Move undone",
+        "game": get_game_state()
+    }
+
+
+@app.post("/redo")
+def redo_move():
+
+    global game
+
+    next_state = history.redo(deepcopy(game))
+
+    if next_state is None:
+        return {
+            "success": False,
+            "message": "Nothing to redo",
+            "game": get_game_state()
+        }
+
+    game = next_state
+
+    return {
+        "success": True,
+        "message": "Move redone",
         "game": get_game_state()
     }
