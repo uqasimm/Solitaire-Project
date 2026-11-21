@@ -42,6 +42,7 @@ function App() {
   const [game, setGame] = useState(null);
   const [selected, setSelected] = useState(null);
   const [moves, setMoves] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [message, setMessage] = useState("Welcome to Solitaire!");
   const [loading, setLoading] = useState(true);
 
@@ -84,6 +85,18 @@ function App() {
     loadGame();
   }, []);
 
+  const gameWon = game?.won;
+
+  useEffect(() => {
+    if (!game || gameWon) return;
+
+    const interval = setInterval(() => {
+      setElapsedTime((previous) => previous + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [game !== null, gameWon]);
+
   async function updateGame(url, body = null) {
     const result = await requestGame(url, {
       method: "POST",
@@ -120,6 +133,7 @@ function App() {
       setGame(result.game);
       setSelected(null);
       setMoves(0);
+      setElapsedTime(0);
       setMessage("New game started!");
     }
   }
@@ -135,6 +149,23 @@ function App() {
 
       if (result.success) {
         setMoves((previous) => Math.max(0, previous - 1));
+      }
+
+      setMessage(result.message);
+    }
+  }
+
+  async function redoGame() {
+    const result = await requestGame("/redo", {
+      method: "POST",
+    });
+
+    if (result) {
+      setGame(result.game);
+      setSelected(null);
+
+      if (result.success) {
+        setMoves((previous) => previous + 1);
       }
 
       setMessage(result.message);
@@ -224,6 +255,11 @@ function App() {
     );
   }
 
+  const minutes = Math.floor(elapsedTime / 60);
+  const seconds = elapsedTime % 60;
+
+  const formattedTime = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
   return (
     <main className="app">
       <header className="top-bar">
@@ -234,9 +270,14 @@ function App() {
 
         <div className="game-controls">
           <span className="move-counter">Moves: {moves}</span>
+          <span className="move-counter">Time: {formattedTime}</span>
 
           <button className="undo-button" onClick={undoGame}>
             Undo
+          </button>
+
+          <button className="undo-button" onClick={redoGame}>
+            Redo
           </button>
 
           <button className="new-game-button" onClick={newGame}>
